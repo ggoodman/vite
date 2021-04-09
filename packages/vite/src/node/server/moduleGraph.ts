@@ -11,6 +11,10 @@ import { TransformResult } from './transformRequest'
 import { PluginContainer } from './pluginContainer'
 import { parse as parseUrl } from 'url'
 
+export interface ModuleGraphOptions {
+  onModuleInvalidated?: (mod: ModuleNode) => void
+}
+
 export class ModuleNode {
   /**
    * Public served url path, starts with /
@@ -37,9 +41,16 @@ export class ModuleNode {
   }
 }
 
-function invalidateSSRModule(mod: ModuleNode, seen: Set<ModuleNode>) {
+function invalidateSSRModule(
+  mod: ModuleNode,
+  seen: Set<ModuleNode>,
+  onModuleInvalidated?: (mod: ModuleNode) => void
+) {
   if (seen.has(mod)) {
     return
+  }
+  if (onModuleInvalidated) {
+    onModuleInvalidated(mod)
   }
   seen.add(mod)
   mod.ssrModule = null
@@ -51,8 +62,9 @@ export class ModuleGraph {
   // a single file may corresponds to multiple modules with different queries
   fileToModulesMap = new Map<string, Set<ModuleNode>>()
   container: PluginContainer
+  onModuleInvalidated?: (mod: ModuleNode) => void
 
-  constructor(container: PluginContainer) {
+  constructor(container: PluginContainer, options: ModuleGraphOptions = {}) {
     this.container = container
   }
 
@@ -82,7 +94,7 @@ export class ModuleGraph {
   invalidateModule(mod: ModuleNode, seen: Set<ModuleNode> = new Set()) {
     mod.transformResult = null
     mod.ssrTransformResult = null
-    invalidateSSRModule(mod, seen)
+    invalidateSSRModule(mod, seen, this.onModuleInvalidated)
   }
 
   invalidateAll() {

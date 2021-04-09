@@ -35,6 +35,7 @@ import {
 } from './server/pluginContainer'
 import aliasPlugin from '@rollup/plugin-alias'
 import { build } from 'esbuild'
+import { ModuleNode } from './server/moduleGraph'
 
 const debug = createDebugger('vite:config')
 
@@ -160,6 +161,7 @@ export interface SSROptions {
 
 export interface InlineConfig extends UserConfig {
   configFile?: string | false
+  onModuleInvalidated?: (module: ModuleNode) => void
 }
 
 export type ResolvedConfig = Readonly<

@@ -282,7 +282,9 @@ export async function createServer(
 
   const plugins = config.plugins
   const container = await createPluginContainer(config, watcher)
-  const moduleGraph = new ModuleGraph(container)
+  const moduleGraph = new ModuleGraph(container, {
+    onModuleInvalidated: inlineConfig.onModuleInvalidated
+  })
   const closeHttpServer = createServerCloseFn(httpServer)
 
   // eslint-disable-next-line prefer-const
